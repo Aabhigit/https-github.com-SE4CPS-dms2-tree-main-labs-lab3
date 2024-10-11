@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IndexedDB Demo</title>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // Open IndexedDB and Create Object Store
+            let request = indexedDB.open("AgricultureDB", 1);
+
+            request.onupgradeneeded = (event) => {
+                let db = event.target.result;
+                if (!db.objectStoreNames.contains("AgricultureStore")) {
+                    db.createObjectStore("AgricultureStore", { keyPath: "UUID" });
+                }
+            };
+
+            request.onsuccess = (event) => {
+                let db = event.target.result;
+                generateAndStoreData(db);
+            };
+
+            request.onerror = () => {
+                console.log("Error opening IndexedDB.");
+            };
+
+            // Function to generate and store 1000 objects
+            function generateAndStoreData(db) {
+                let transaction = db.transaction("AgricultureStore", "readwrite");
+                let store = transaction.objectStore("AgricultureStore");
+                
+                for (let i = 0; i < 1000; i++) {
+                    let record = {
+                        UUID: crypto.randomUUID(),
+                        source_database: "IndexedDB",
+                        creation_timestamp: new Date().toISOString(),
+                        update_timestamp: new Date().toISOString(),
+                        temperature: (15 + Math.random() * 10).toFixed(2),  // Random temperature
+                        humidity: (50 + Math.random() * 20).toFixed(2),    // Random humidity
+                        crop_type: i % 2 === 0 ? "corn" : "wheat"         // Alternate crop types
+                    };
+                    store.add(record);
+                }
+
+                transaction.oncomplete = () => {
+                    console.log("Successfully inserted 1000 records.");
+                    alert("Data has been successfully added to IndexedDB!");
+                };
+            }
+        });
+    </script>
+</head>
+<body>
+    <h1>IndexedDB Data Insertion Example</h1>
+    <p>Open the Developer Tools and go to the "Application" tab to view the IndexedDB database entries.</p>
+</body>
+</html>
